@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="cs6650assign2RabiitMQ:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/cs6650assign2RabiitMQ_war_exploded</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="cs6650assign2RabiitMQ/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="cs6650assign2RabiitMQ" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
