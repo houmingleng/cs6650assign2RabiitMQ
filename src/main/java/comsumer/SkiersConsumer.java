@@ -35,8 +35,8 @@ public class SkiersConsumer {
                     LiftRide liftRide = gson.fromJson(message, LiftRide.class);
                     System.out.println(" [x] Received '" + liftRide.toString() + "'");
  //                   System.out.println(" [x] Received '" + message + "'");
-//                    map.putIfAbsent(liftRide.getSkierID(), new CopyOnWriteArrayList<>());
-//                    map.get(liftRide.getSkierID()).add(liftRide);
+                    map.putIfAbsent(liftRide.getSkierID(), new CopyOnWriteArrayList<>());
+                    map.get(liftRide.getSkierID()).add(liftRide);
                 };
                 channel.basicConsume(QUEUE_NAME, true, deliverCallback, consumerTag -> { });
             } catch (IOException e) {
