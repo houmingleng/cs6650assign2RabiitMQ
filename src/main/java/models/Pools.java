@@ -38,7 +38,4 @@ public class Pools {
     public void add(Channel channel) {
         pool.add(channel);
     }
-    public BlockingQueue<Channel> getPool() {
-        return pool;
-    }
 }
