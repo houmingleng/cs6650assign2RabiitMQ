@@ -32,9 +32,6 @@ public class SkiersServlet extends HttpServlet {
     private String liftID;
     private  String time;
 
-    //private ChannelPool channelPool;
-//    private Channel channel;
-//    private Connection connection;
     private ChannelPool channelPool;
 
     private final static String QUEUE_NAME = "rpc_queue";
@@ -76,22 +73,7 @@ public class SkiersServlet extends HttpServlet {
             return false;
         }
     }
-//    @Override
-//    public void init() throws ServletException {
-//        try {
-//            super.init();
-//            ConnectionFactory factory = new ConnectionFactory();
-//            factory.setHost("localhost");
-//            factory.setUsername("guest");
-//            factory.setPassword("guest");
-//            this.connection = factory.newConnection();
-//            System.out.println("start");
-//
-//            channel = connection.createChannel();
-//        } catch (IOException | TimeoutException e) {
-//            e.printStackTrace();
-//        }
-//    }
+
     private void handleNoParam(HttpServletResponse res) throws IOException {
         res.setContentType("text/plain");
         res.setStatus(HttpServletResponse.SC_OK);
@@ -104,20 +86,7 @@ public class SkiersServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-//    private String getReqBody(HttpServletRequest req) throws IOException {
-//        StringBuilder sb = new StringBuilder();
-//        String line;
-//        BufferedReader reader = req.getReader();
-//        try{
-//            while((line = reader.readLine()) != null) {
-//                sb.append(line).append("\n");
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//       // LiftRide liftRide = gson.fromJson(sb.toString(), LiftRide.class);
-//        return sb.toString().toString();
-//    }
+
 private LiftRide getReqBody(HttpServletRequest req) throws IOException {
     StringBuilder sb = new StringBuilder();
     String line;
@@ -252,9 +221,7 @@ private LiftRide getReqBody(HttpServletRequest req) throws IOException {
             return HttpRequestStatus.NOT_VALID;
         }
     }
-//    public void close() throws IOException {
-//        connection.close();
-//    }
+
     private boolean isValidNumber(String s) {
         if (s == null || s.isEmpty()) return false;
         try {
