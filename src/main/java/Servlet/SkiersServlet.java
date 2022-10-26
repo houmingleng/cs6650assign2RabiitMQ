@@ -4,20 +4,13 @@ import com.google.gson.Gson;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-import javax.servlet.annotation.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.CompletableFuture;
-import com.rabbitmq.client.AMQP;
+
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
 import models.ChannelPool;
 import models.LiftRide;
 
@@ -53,19 +46,19 @@ public class SkiersServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-            System.out.println("start");
+            System.out.println("begin");
             super.init();
             channelPool = new ChannelPool();
         } catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
     }
-    private boolean sendMessageToQueue(String msg) {
+    private boolean sendMessageToQue(String message) {
         try {
             Channel channel = channelPool.getChannel();
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
             channel.basicPublish("", QUEUE_NAME,
-                    null,msg.getBytes(StandardCharsets.UTF_8));
+                    null,message.getBytes(StandardCharsets.UTF_8));
             channelPool.add(channel);
             return true;
         } catch (InterruptedException | IOException e) {
@@ -74,63 +67,41 @@ public class SkiersServlet extends HttpServlet {
         }
     }
 
-    private void handleNoParam(HttpServletResponse res) throws IOException {
-        res.setContentType("text/plain");
-        res.setStatus(HttpServletResponse.SC_OK);
+    private void withNoParams(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("text/plain");
         try {
-            PrintWriter out = res.getWriter();
-            res.setContentType("application/json");
-            res.setCharacterEncoding("UTF-8");
+            PrintWriter out = response.getWriter();
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-private LiftRide getReqBody(HttpServletRequest req) throws IOException {
-    StringBuilder sb = new StringBuilder();
-    String line;
-    BufferedReader reader = req.getReader();
-    try{
-        while((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
-        }
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-    LiftRide liftRide = gson.fromJson(sb.toString(), LiftRide.class);
-    return liftRide;
-}
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("text/plain");
         String urlPath = req.getPathInfo();
-        //HttpRequestStatus curStatus = checkStatus(urlPath, "POST");
         PrintWriter out = res.getWriter();
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
         if (urlPath == null || urlPath.isEmpty()) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            res.getWriter().write("missing paramterers");
+            res.getWriter().write("missing params");
             return;
         }
-       System.out.println(urlPath);
-        String[] urlParts = urlPath.split("/");
-        // and now validate url path and return the response status code
-        // (and maybe also some value if input is valid)
-
-        if (!isUrlValid(urlPath)) {
+       //System.out.println(urlPath);
+        if (!urlValid(urlPath)) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
         } else {
             out.write(gson.toJson(new Message(urlPath)));
             res.setStatus(HttpServletResponse.SC_OK);
-            // do any sophisticated processing with urlParts which contains all the url params
-            // TODO: process url params in `urlParts`
-            res.getWriter().write("It works!");
+            res.getWriter().write("works!");
         }
     }
-    private boolean isUrlValid(String urlPath) {
-        // TODO: validate the request url path according to the API spec
+    private boolean urlValid(String urlPath) {
         if(urlPath == null || urlPath.isEmpty()) return false;
         return true;
     }
@@ -147,16 +118,26 @@ private LiftRide getReqBody(HttpServletRequest req) throws IOException {
         PrintWriter out = res.getWriter();
         if(!curStatus.equals(HttpRequestStatus.NOT_VALID)) {
             res.setStatus(HttpServletResponse.SC_OK);
-            if(curStatus.equals(HttpRequestStatus.GET_NO_PARAM)) handleNoParam(res);
+            if(curStatus.equals(HttpRequestStatus.GET_NO_PARAM)) withNoParams(res);
             else{
-                LiftRide liftRide = getReqBody(req);
+                String line;
+                StringBuilder sb = new StringBuilder();
+                BufferedReader reader = req.getReader();
+                try{
+                    while((line = reader.readLine()) != null) {
+                        sb.append(line).append("\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                LiftRide liftRide = gson.fromJson(sb.toString(), LiftRide.class);
                 liftRide.setDayID(dayID);
                 liftRide.setSkierID(skierID);
                 liftRide.setSeasonID(seasonID);
                 liftRide.setResortID(resortID);
                 //System.out.println(liftRide);
                 String message = gson.toJson(liftRide);
-                if(sendMessageToQueue(message)) {
+                if(sendMessageToQue(message)) {
                     res.getWriter().write(gson.toJson(new Message("active")));
                 } else {
                     res.getWriter().write("not success");
@@ -178,11 +159,9 @@ private LiftRide getReqBody(HttpServletRequest req) throws IOException {
         String skierID = "";
         String[] urlParts = urlPath.split("/");
 
-
         if(urlParts.length == 9) {
            // System.out.println(urlParts[3] +" "+ urlParts[5] +" "+ urlParts[1]);
             if(!urlParts[3].equals("seasons") || !urlParts[5].equals("days") || !urlParts[1].equals("skiers")) {
-                outputMsg = new Message("Page2 Not Found");
                 return HttpRequestStatus.NOT_VALID;
             }
             resortID = urlParts[2];
@@ -190,9 +169,9 @@ private LiftRide getReqBody(HttpServletRequest req) throws IOException {
             dayID = urlParts[6];
             skierID = urlParts[8];
             //System.out.println(seasons +" "+ dayID +" "+ resortID+" "+skierID);
-            if(!isValidNumber(resortID) || isValidNumber(dayID)
-                    || !isValidNumber(skierID)) {
-                outputMsg = new Message("Invalid Input Information");
+            if(!isValid(resortID) || isValid(dayID)
+                    || !isValid(skierID)) {
+
                 return HttpRequestStatus.NOT_VALID;
             }
             this.resortID = resortID;
@@ -205,22 +184,19 @@ private LiftRide getReqBody(HttpServletRequest req) throws IOException {
 
         } else if(urlParts.length == 3) {
             if(!urlParts[2].equals("vertical")) {
-                outputMsg = new Message("Page3 Not Found");
                 return HttpRequestStatus.NOT_VALID;
             }
             resortID = urlParts[1];
-            if(!isValidNumber(resortID)) {
-                outputMsg = new Message("Invalid resortNumber");
+            if(!isValid(resortID)) {
                 return HttpRequestStatus.NOT_VALID;
             }
             return HttpRequestStatus.GET_VERTICAL_WITH_ID;
         } else {
-            outputMsg = new Message(String.valueOf(urlParts.length));
             return HttpRequestStatus.NOT_VALID;
         }
     }
 
-    private boolean isValidNumber(String s) {
+    private boolean isValid(String s) {
         if (s == null || s.isEmpty()) return false;
         try {
             int digits = Integer.parseInt(s);
