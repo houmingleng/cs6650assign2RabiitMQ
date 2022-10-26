@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
 import com.rabbitmq.client.Channel;
-import models.ChannelPool;
+import models.Pools;
 import models.LiftRide;
 
 //@WebServlet(name = "SkiersServlet", value = "/SkiersServlet")
@@ -25,7 +25,7 @@ public class SkiersServlet extends HttpServlet {
     private String liftID;
     private  String time;
 
-    private ChannelPool channelPool;
+    private Pools pools;
 
     private final static String QUEUE_NAME = "rpc_queue";
 
@@ -48,18 +48,18 @@ public class SkiersServlet extends HttpServlet {
         try {
             System.out.println("begin");
             super.init();
-            channelPool = new ChannelPool();
+            pools = new Pools();
         } catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
     }
     private boolean sendMessageToQue(String message) {
         try {
-            Channel channel = channelPool.getChannel();
+            Channel channel = pools.getChannel();
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
             channel.basicPublish("", QUEUE_NAME,
                     null,message.getBytes(StandardCharsets.UTF_8));
-            channelPool.add(channel);
+            pools.add(channel);
             return true;
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
