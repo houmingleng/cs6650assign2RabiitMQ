@@ -110,7 +110,6 @@ public class SkiersServlet extends HttpServlet {
         res.setContentType("text/plain");
         String urlPath = req.getPathInfo();
         //System.out.println(urlPath);
-
         HttpRequestStatus curStatus = checkStatus(urlPath, req.getMethod());
         //System.out.println(curStatus.name());
         res.setContentType("application/json");
@@ -132,9 +131,9 @@ public class SkiersServlet extends HttpServlet {
                 }
                 LiftRide liftRide = gson.fromJson(sb.toString(), LiftRide.class);
                 liftRide.setDayID(dayID);
-                liftRide.setSkierID(skierID);
                 liftRide.setSeasonID(seasonID);
                 liftRide.setResortID(resortID);
+                liftRide.setSkierID(skierID);
                 //System.out.println(liftRide);
                 String message = gson.toJson(liftRide);
                 if(sendMessageToQue(message)) {
