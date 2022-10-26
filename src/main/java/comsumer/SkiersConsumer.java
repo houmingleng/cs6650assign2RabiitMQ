@@ -22,8 +22,6 @@ public class SkiersConsumer {
         ConnectionFactory factory = new ConnectionFactory();
         Gson gson = new Gson();
         factory.setHost("localhost");
-       // factory.setUsername("guest");
-        //factory.setPassword("guest");
         Connection connection = factory.newConnection();
         Runnable runnable = () -> {
             Channel channel;
@@ -34,7 +32,6 @@ public class SkiersConsumer {
                     String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
                     LiftRide liftRide = gson.fromJson(message, LiftRide.class);
                     System.out.println(" [x] Received '" + liftRide.toString() + "'");
- //                   System.out.println(" [x] Received '" + message + "'");
                     map.putIfAbsent(liftRide.getSkierID(), new CopyOnWriteArrayList<>());
                     map.get(liftRide.getSkierID()).add(liftRide);
                 };
